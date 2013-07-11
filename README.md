@@ -1,2 +1,2 @@
-moodle-bloc_module_menu
+moodle-block_module_menu
 =======================
