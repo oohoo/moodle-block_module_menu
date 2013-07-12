@@ -34,6 +34,8 @@ class block_module_menu extends block_base {
         //only include the javascript functionality if where in edit mode
         if ($PAGE->user_is_editing()) {
             $this->load_jQuery();//loads jquery
+            echo "<script>var module_menu_php = new Array();</script>"; //global js object
+            
             $PAGE->requires->js("/blocks/module_menu/module_menu.js");//custom js
         }
     }
@@ -115,14 +117,31 @@ class block_module_menu extends block_base {
         global $COURSE, $CFG;
         
         echo "<script>";
-           echo "var module_menu_php = new Array();"; //global js object
            echo "module_menu_php['course'] = $COURSE->id ;"; //course id
            echo "module_menu_php['wwwroot'] = '$CFG->wwwroot';"; //server address
            
            //LANGS
-           echo "module_menu_php['invalid_section_id'] = '"+get_string('invalid_section_id','block_module_menu')+"';"; 
-        
+           echo "module_menu_php['invalid_section_id'] = '".get_string('invalid_section_id','block_module_menu')."';"; 
+           echo "module_menu_php['ajax'] = '$CFG->wwwroot/blocks/module_menu/ajax_controller.php';";
+           echo "module_menu_php['orientation'] = '".$this->get_menu_oritentation()."';";
+           
            echo "</script>";
+    }
+    
+    /**
+     * Returns the current orientation of the menu for the module menu instance
+     * 
+     * If the value has never been set then its horiz by default
+     */
+    private function get_menu_oritentation() {
+        $data = $this->config;
+        
+        if(isset($this->config) && isset($data->orientation)) {
+            return $data->orientation;
+        } else {
+            return "horiz";
+        }
+        
     }
     
     /**
@@ -260,7 +279,7 @@ class block_module_menu extends block_base {
      * No Instance Config
      */
     function instance_allow_config() {
-        return false;
+        return true;
     }
 
     /**

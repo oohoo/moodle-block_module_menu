@@ -37,6 +37,32 @@ function module_menu_hide_dropdowns() {
 }
 
 /**
+ * Saves the orientation state for the module menu instance
+ * 
+ * @param {int} blockid ID of the block to be updates
+ * @param {string} orientation vert, horiz, or none
+ */
+function update_orientation(blockid, orientation) {
+    var json = {
+        course: module_menu_php['course'],
+        orientation: orientation,
+        blockid: blockid
+    };
+    
+    var json_string = JSON.stringify(json);
+    
+    $.ajax({
+      url: module_menu_php['ajax'],//url for ajax calls
+      data: {
+          module_menu_json:json_string,
+          operation:"update"
+      },//data to be sent
+  
+      //when ajax has completed
+       })
+}
+
+/**
  * Initializes the sections
  *  -Adds landing pads to the section
  *  -makes the section a droppable
@@ -76,7 +102,7 @@ function module_menu_init_menu() {
     module_menu_init_hover_scroll_vert();//initalize vertical menu
     
     //determine which menu to load
-    module_menu_change_menu('vert');
+    module_menu_change_menu(module_menu_php['orientation']);
     
     //initalize the orientation settings within the block
     //(change between menu instances)
@@ -169,6 +195,32 @@ function module_menu_init_dragable() {
 }
 
 /**
+ * Given an html element within a block, this function will determine the id of
+ * that block instance.
+ * 
+ * @param {object} element An html dom object within the block instance
+ * @returns {string} The instance id (its numeric but returned as a string) -> "12"
+ */
+function module_menu_get_block_id_from_element(element) {
+    
+    var div_container = $(element).parents('div[id^=inst]');
+    var text_id = div_container.attr("id");
+    //Attempt to parse the actual number from the section id
+    var patt = /([\d]*)$/;
+    var matches = patt.exec(text_id);
+
+    //no there are no matches, something in moodle has changed, or this
+    //course format isn't going to work!
+    if (matches.length < 2) {
+        console.log(module_menu_php['invalid_block_id']);
+        return;
+    }
+    
+    return matches[1];
+    
+}
+
+/**
  * Initalizes the orientation menu that is located within the actual block itself
  */
 function module_menu_init_block_settings() {
@@ -176,16 +228,25 @@ function module_menu_init_block_settings() {
     //when horz button pressed, change to horizontal menu
     $("#module_menu_horz_btn").click(function() {
         module_menu_change_menu('horiz');
+        
+        var blockid = module_menu_get_block_id_from_element(this);//get id of the block
+        update_orientation(blockid, 'horiz');//ajax update
     });
     
     //when vert button pressed, change to vert menu
     $("#module_menu_vert_btn").click(function() {
         module_menu_change_menu('vert');
+        
+        var blockid = module_menu_get_block_id_from_element(this);//get id of the block
+        update_orientation(blockid, 'vert');//ajax update
     });
     
     //when none button pressed, show no menu
     $("#module_menu_none_btn").click(function() {
         module_menu_change_menu('none');
+        
+        var blockid = module_menu_get_block_id_from_element(this);//get id of the block
+        update_orientation(blockid, 'none');//ajax update
     });
 }
 
