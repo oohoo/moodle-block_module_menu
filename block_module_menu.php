@@ -31,13 +31,6 @@ class block_module_menu extends block_base {
         //set title
         $this->title = get_string('module_menu', 'block_module_menu');
 
-        //only include the javascript functionality if where in edit mode
-        if ($PAGE->user_is_editing()) {
-            $this->load_jQuery();//loads jquery
-            echo "<script>var module_menu_php = new Array();</script>"; //global js object
-            
-            $PAGE->requires->js("/blocks/module_menu/module_menu.js");//custom js
-        }
     }
 
     /**
@@ -59,6 +52,8 @@ class block_module_menu extends block_base {
         //if in edit mode: output a header and the orientation menu in the block
         if ($PAGE->user_is_editing()) {
             
+            $this->load_jQuery();//loads jquery         
+
             //oritentation header
             $content .= html_writer::start_tag('h4', array('class' => 'module_menu_block'));
                 $content .= get_string('editing_block_display', 'block_module_menu');
@@ -100,8 +95,7 @@ class block_module_menu extends block_base {
             $this->generate_module_menu('module_menu_vert_menu_wrapper', 'ui-icon-triangle-1-n','ui-icon-triangle-1-s', false, "vert");
             //landing pad template
             $this->generate_landing_pad();
-            //some inline JS for php info
-            $this->module_menu_inline_js();
+
             
         echo html_writer::end_tag("div");
     }
@@ -116,7 +110,10 @@ class block_module_menu extends block_base {
     private function module_menu_inline_js() {
         global $COURSE, $CFG;
         
-        echo "<script>";
+        echo "<script>console.log(module_menu_php);";
+           
+           echo "if(typeof module_menu_php == 'undefined') var module_menu_php = new Array();"; //global js object
+        
            echo "module_menu_php['course'] = $COURSE->id ;"; //course id
            echo "module_menu_php['wwwroot'] = '$CFG->wwwroot';"; //server address
            
@@ -323,20 +320,29 @@ class block_module_menu extends block_base {
 
     /**
      * Loads jQuery based on if its moodle 2.5 or pre-moodle 2.5
+     * @global moodle_page $PAGE
+     * 
      */
     function load_jQuery() {
-        global $PAGE;
+        global $PAGE, $DB, $COURSE;
 
+        $this->module_menu_inline_js();//some inline JS for php info
+        
         if (moodle_major_version() >= '2.5') {//use moodle's built in if > moodle 2.5
             $PAGE->requires->jquery();
             $PAGE->requires->jquery_plugin('migrate');
             $PAGE->requires->jquery_plugin('ui');
             $PAGE->requires->jquery_plugin('ui-css');
         } else {//need to include jquery if pre moodle 2.5
-            $PAGE->requires->js("/block/module_menu/module_menu.js");
-            $PAGE->requires->js("/block/module_menu/jquery/core/jquery-ui.min.js");
-            $PAGE->requires->css("/block/module_menu/jquery/core/themes/base/jquery.ui.all.css");
+            
+         //More Ugly Stuff to make it slightly more 2.4 friendly with course menu format...   
+         if($COURSE->format != 'course_menu'){        
+            $PAGE->requires->js("/blocks/module_menu/jquery/core/jquery-ui.min.js");
+            $PAGE->requires->css("/blocks/module_menu/jquery/core/themes/base/jquery.ui.all.css");
+            }
         }
+        
+        $PAGE->requires->js("/blocks/module_menu/module_menu.js");
     }
 
 }

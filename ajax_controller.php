@@ -60,9 +60,7 @@ switch($operation) {
  */
 function module_menu_update($json) {
     global $DB;
-    
-    print_object($json);
-    
+
     //get block instance from db
     $block_instance = $DB->get_record('block_instances', array('id'=>$json->blockid));
     
