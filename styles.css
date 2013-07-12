@@ -3,7 +3,7 @@
     color: green;
 }
 
-#module_menu_horiz_menu_wrapper, #module_menu_vert_menu_wrapper {
+#module_menu_horiz_menu_wrapper, #module_menu_vert_menu_wrapper, #module_menu_bot_menu_wrapper {
     text-align: center;
     border-radius: 8px;
     border-width: 2px;
@@ -54,6 +54,15 @@
     z-index: 9999999;
 }
 
+#module_menu_bot_menu_wrapper {
+    width: 80%;
+    min-width: 600px;
+    position: fixed;
+    bottom: 5px;
+    margin-left: 10%;
+    z-index: 9999999;
+}
+
 #module_menu_wrapper {
     margin: auto;
 }
@@ -70,7 +79,7 @@
     overflow: hidden;
 }
 
-#module_menu_horiz_menu_wrapper .module_menu_left {
+#module_menu_horiz_menu_wrapper .module_menu_left, #module_menu_bot_menu_wrapper .module_menu_left {
     display: inline-block;
     float: left;
     width: 5%;
@@ -79,7 +88,7 @@
     margin-top: 5px;
 }
 
-#module_menu_horiz_menu_wrapper .module_menu_container {
+#module_menu_horiz_menu_wrapper .module_menu_container, #module_menu_bot_menu_wrapper .module_menu_container {
     width: 90%;
     white-space:nowrap;
     overflow: hidden;
@@ -89,7 +98,7 @@
 
 
 
-#module_menu_horiz_menu_wrapper .module_menu_right {
+#module_menu_horiz_menu_wrapper .module_menu_right, #module_menu_bot_menu_wrapper .module_menu_right {
     display: inline-block;
     float: right;
     width: 5%;
@@ -100,7 +109,7 @@
 }
 
 
-#module_menu_horiz_menu_wrapper .module_menu_mod_wrap {
+#module_menu_horiz_menu_wrapper .module_menu_mod_wrap, #module_menu_bot_menu_wrapper .module_menu_mod_wrap {
   width: 50px;
   display: inline-block;
 }
@@ -182,11 +191,11 @@ background: linear-gradient(to bottom, rgba(206,220,231,1) 0%,rgba(169,203,229,1
 filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cedce7', endColorstr='#768e96',GradientType=0 ); /* IE6-9 */
 }
 
-#module_menu_horiz_menu_wrapper .module_menu_right span {
+#module_menu_horiz_menu_wrapper .module_menu_right span, #module_menu_bot_menu_wrapper .module_menu_right span {
     display: inline-block;
 }
 
-#module_menu_horiz_menu_wrapper .module_menu_left span {
+#module_menu_horiz_menu_wrapper .module_menu_left span, #module_menu_bot_menu_wrapper .module_menu_left span {
     display: inline-block;
 }
 

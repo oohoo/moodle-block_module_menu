@@ -65,7 +65,9 @@ class block_module_menu extends block_base {
                 $content .=  html_writer::empty_tag("img", array('src'=>"$CFG->wwwroot/blocks/module_menu/pix/horiz.png", 'id'=>'module_menu_horz_btn', 'class'=>'module_menu_btn'));
                 //vert orientation
                 $content .=  html_writer::empty_tag("img", array('src'=>"$CFG->wwwroot/blocks/module_menu/pix/vert.png", 'id'=>'module_menu_vert_btn', 'class'=>'module_menu_btn'));
-               //no menus
+                //vert orientation
+                $content .=  html_writer::empty_tag("img", array('src'=>"$CFG->wwwroot/blocks/module_menu/pix/bottom.png", 'id'=>'module_menu_bot_btn', 'class'=>'module_menu_btn'));
+                //no menus
                 $content .=  html_writer::empty_tag("img", array('src'=>"$CFG->wwwroot/blocks/module_menu/pix/none.png", 'id'=>'module_menu_none_btn', 'class'=>'module_menu_btn'));
              $content .=  html_writer::end_tag("div");
             }
@@ -93,6 +95,8 @@ class block_module_menu extends block_base {
             $this->generate_module_menu('module_menu_horiz_menu_wrapper', 'ui-icon-triangle-1-w', 'ui-icon-triangle-1-e');
             //vert menu instance
             $this->generate_module_menu('module_menu_vert_menu_wrapper', 'ui-icon-triangle-1-n','ui-icon-triangle-1-s', false, "vert");
+            //bot menu instance
+            $this->generate_module_menu('module_menu_bot_menu_wrapper', 'ui-icon-triangle-1-w', 'ui-icon-triangle-1-e');
             //landing pad template
             $this->generate_landing_pad();
 
@@ -148,19 +152,33 @@ class block_module_menu extends block_base {
      * @global object $OUTPUT
      */
     private function generate_landing_pad() {
-        global $OUTPUT;
+        global $OUTPUT, $CFG;
         //get text for landing page
         $text = get_string('landing_pad_text','block_module_menu');
         
         //create landing pad div
         echo html_writer::start_tag("div", array('class' => 'module_menu_landing_pad', 'style'=>'display:none'));
-            //same icon as the moodle drag/drop add files in sections
-            echo html_writer::empty_tag("img", array('alt'=>$text,'src'=>$OUTPUT->pix_url('t/addfile'),'class' => 'module_menu_landing_pad_icon'));
-            //landing page message
-            echo html_writer::start_tag("span", array('class' => 'module_menu_landing_pad_text'));
-                echo $text;
-            echo html_writer::end_tag("span");
-        
+         
+            echo html_writer::start_tag("div", array('class' => 'module_menu_landing_pad_add'));
+                //same icon as the moodle drag/drop add files in sections
+                echo html_writer::empty_tag("img", array('alt'=>$text,'src'=>$OUTPUT->pix_url('t/addfile'),'class' => 'module_menu_landing_pad_icon'));
+                //landing page message
+                echo html_writer::start_tag("span", array('class' => 'module_menu_landing_pad_text'));
+                    echo $text;
+                echo html_writer::end_tag("span");
+                
+            echo html_writer::end_tag("div");
+                
+            echo html_writer::start_tag("div", array('class' => 'module_menu_landing_pad_loading', 'style'=>'display:none'));
+                //same icon as the moodle drag/drop add files in sections
+                echo html_writer::empty_tag("img", array('alt'=>$text,'src'=>"$CFG->wwwroot/blocks/module_menu/pix/loading.gif",'class' => 'module_menu_landing_pad_icon'));
+                //landing page message
+                echo html_writer::start_tag("span", array('class' => 'module_menu_landing_pad_text'));
+                    echo get_string('loading','block_module_menu');
+                echo html_writer::end_tag("span");
+                
+            echo html_writer::end_tag("div");
+            
         echo html_writer::end_tag("div");
     }
     

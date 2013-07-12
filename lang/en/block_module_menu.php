@@ -22,3 +22,4 @@ $string['editing_block_display'] = 'Menu Orientation';
 $string['landing_pad_text'] = "Add Module Here";
 $string['invalid_section_id'] = "Invalid Section ID Detected. This course format might not be supported.";
 $string['invalid_block_id'] = "Programming Error: Invalid Block ID Detected.";
+$string['loading'] = "Loading . . . ";

@@ -80,6 +80,7 @@ function module_menu_init_sections() {
         
         //Turn the section itself into a droppable area
         $(element).droppable({
+            accept: ".module_menu_mod_wrap",//this class is allowed to be dropped onto this dropable
             tolerance: "pointer",
             //whenever a draggable module enters the section area - show the landing pad
             over: function(event, ui) {
@@ -88,7 +89,10 @@ function module_menu_init_sections() {
             //whenever a draggable module exits the section area - hide the landing pad
             out: function(event, ui) {
                 $(this).find(".module_menu_landing_pad").hide(200);
-            }
+            },
+           drop: function(event, ui) {
+            module_menu_dropped_event(this, event, ui);
+        }
         });
     });
 
@@ -98,7 +102,7 @@ function module_menu_init_sections() {
  * Faciliates the initalization of the various menu instances for the block
  */
 function module_menu_init_menu() {
-    module_menu_init_hover_scroll_horiz();//initalize horizontal menu
+    module_menu_init_hover_scroll_horiz();//initalize horizontal menus
     module_menu_init_hover_scroll_vert();//initalize vertical menu
     
     //determine which menu to load
@@ -139,40 +143,60 @@ function module_menu_init_dropable(selector) {
         //  -determine that modules specific name, the course, and the section and
         //   create a link to that module's creation page with the appropriate params
         drop: function(event, ui) {
-            var draggable = ui.draggable;//get the module draggable
-            
-            //find the immediate li parent - contains the section id
-            var li_section_wrapper = $(this).parents("[id^='section-']");
-            
-            //get the section id in the format: "section-#"
-            var section = li_section_wrapper.attr("id");
-            
-            //Attempt to parse the actual number from the section id
-            var patt=/section-([\d]*)/;
-            var matches = patt.exec(section);
-            
-            //no there are no matches, something in moodle has changed, or this
-            //course format isn't going to work!
-            if(matches.length < 2) {
-                console.log(module_menu_php['invalid_section_id']);
-                return;
-            }
-            
-            //create the URL to module's creation page
-            var add_module_url = module_menu_php['wwwroot'];//server address
-            add_module_url += "/course/modedit.php";
-            add_module_url += "?add=" + $(draggable).attr("modname");//module name is used as identifer to module type
-            add_module_url += "&type=";//no idea
-            add_module_url += "&course=" + module_menu_php['course'];//course id
-            add_module_url += "&section=" + matches[1];//which section that draggable was dropped into
-            add_module_url += "&return=0";//no idea
-            add_module_url += "&sr=";//no idea
-            
-            //redirect browser
-            window.location.href = add_module_url;
+            module_menu_dropped_event(this, event, ui);
         }
     });
 
+}
+
+/**
+ * Given an event and ui objects from a jquery dropped event that occurs with 
+ * an module menu option - this function redirects page
+ * to the instance creation for that module 
+ * 
+ * @param {object} droppable
+ * @param {object} event
+ * @param {object} ui
+ */
+function module_menu_dropped_event(droppable, event, ui) {
+    var draggable = ui.draggable;//get the module draggable
+
+    
+    $(draggable).draggable( "option", "revert", false );
+    ui.helper.data('dropped', true);
+
+    $(droppable).find(".module_menu_landing_pad_add").hide();
+    $(droppable).find(".module_menu_landing_pad_loading").show();
+
+    //find the immediate li parent - contains the section id
+    var li_section_wrapper = $(droppable).closest("[id^='section-']");
+
+    //get the section id in the format: "section-#"
+    var section = li_section_wrapper.attr("id");
+
+    //Attempt to parse the actual number from the section id
+    var patt = /section-([\d]*)/;
+    var matches = patt.exec(section);
+
+    //no there are no matches, something in moodle has changed, or this
+    //course format isn't going to work!
+    if (matches.length < 2) {
+        console.log(module_menu_php['invalid_section_id']);
+        return;
+    }
+
+    //create the URL to module's creation page
+    var add_module_url = module_menu_php['wwwroot'];//server address
+    add_module_url += "/course/modedit.php";
+    add_module_url += "?add=" + $(draggable).attr("modname");//module name is used as identifer to module type
+    add_module_url += "&type=";//no idea
+    add_module_url += "&course=" + module_menu_php['course'];//course id
+    add_module_url += "&section=" + matches[1];//which section that draggable was dropped into
+    add_module_url += "&return=0";//no idea
+    add_module_url += "&sr=";//no idea
+
+    //redirect browser
+    window.location.href = add_module_url;
 }
 
 /**
@@ -188,8 +212,16 @@ function module_menu_init_dragable() {
         //on stop - rehide the landing pads and make their borders all dashed!
         //This is done since some of the events arn't called on drop - leaving a section for example
         stop: function(event, ui) {
-           $("#page .module_menu_landing_pad").hide(200); 
-           $("#page .module_menu_landing_pad").css('border-style', 'dashed');
+            
+            console.log("SSSS");
+            console.log(ui.helper.data('dropped'));
+            
+            if(!ui.helper.data('dropped')) {
+                $("#page .module_menu_landing_pad").hide(200); 
+                $("#page .module_menu_landing_pad").css('border-style', 'dashed');
+                $(module_menu_sections).find(".module_menu_landing_pad_add").show();
+                $(module_menu_sections).find(".module_menu_landing_pad_loading").hide();
+            }
         }
     });
 }
@@ -248,6 +280,14 @@ function module_menu_init_block_settings() {
         var blockid = module_menu_get_block_id_from_element(this);//get id of the block
         update_orientation(blockid, 'none');//ajax update
     });
+    
+        //when bottom button pressed, show no menu
+    $("#module_menu_bot_btn").click(function() {
+        module_menu_change_menu('bot');
+        
+        var blockid = module_menu_get_block_id_from_element(this);//get id of the block
+        update_orientation(blockid, 'bot');//ajax update
+    });
 }
 
 /**
@@ -259,10 +299,12 @@ function module_menu_change_menu(type) {
     //grab menu instances for convience
     var hori_menu = $("#module_menu_horiz_menu_wrapper");
     var vert_menu = $("#module_menu_vert_menu_wrapper");
+    var bot_menu = $("#module_menu_bot_menu_wrapper");
     
     //attach both instances back to our hidden div containing the module menu building blocks
     $("#module_menu_wrapper").append(hori_menu);
     $("#module_menu_wrapper").append(vert_menu);
+    $("#module_menu_wrapper").append(bot_menu);
     
     //get the main moodle page
     var page = $('#page');
@@ -278,6 +320,9 @@ function module_menu_change_menu(type) {
     } else if(type === 'horiz') {//horizontal menu
         $(page).append(hori_menu);
         $("#module_menu_horz_btn").addClass('active');//make horiz button active
+    } else if(type === 'bot') {//horizontal menu
+        $(page).append(bot_menu);
+        $("#module_menu_bot_btn").addClass('active');//make horiz button active
     } else {//no menu
         $("#module_menu_none_btn").addClass('active');//make no menu active
     }
@@ -289,7 +334,7 @@ function module_menu_change_menu(type) {
  */
 function module_menu_init_hover_scroll_horiz() {
     //hovering on the left side of horiz menu
-    $("#module_menu_horiz_menu_wrapper .module_menu_left").hover(
+    $("#module_menu_horiz_menu_wrapper .module_menu_left, #module_menu_bot_menu_wrapper .module_menu_left").hover(
      
       //enter the scroll left element
       function(event) {
@@ -316,7 +361,7 @@ function module_menu_init_hover_scroll_horiz() {
     });
     
    //hovering on the right side of horiz menu
-    $("#module_menu_horiz_menu_wrapper .module_menu_right").hover(
+    $("#module_menu_horiz_menu_wrapper .module_menu_right, #module_menu_bot_menu_wrapper .module_menu_right").hover(
      
      //enter right element
      function(event) {
@@ -423,11 +468,31 @@ function module_menu_init_help_dialogs() {
         
         //turn the help content into a dialog
         $(help_content).dialog({
-           autoOpen: false 
+           autoOpen: false,
+           width: 800
         });
         
         //connect this help button with this help dialog
         $(help_button).click(function() {
+            
+            //get full width of window
+            var fullwidth = $(window).width();
+            
+            //dialog will be 85% of the full window size
+            var width = 0.85 * fullwidth;
+            
+            //need to determine the leftover space: window width - size of dialog: then half on each side!
+            var leftoffset = (fullwidth - width) / 2;
+            
+            //always have dialog 200 below top of viewpane
+            var topoffset = 200;
+            
+            //set our custom width
+            $(help_content).dialog('option', 'width', width);
+            
+            //set our dynamic position
+            $(help_content).dialog('option', 'position',  [leftoffset, topoffset]);
+            
             $(help_content).dialog("open");//open dialog when button clicked
         });
         
