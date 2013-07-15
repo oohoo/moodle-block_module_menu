@@ -16,7 +16,7 @@
  * ************************************************************************ */
 
 /**
- * This script handles the various ajax functionality used by this module menu block
+ * This script handles the various ajax functionality used by this dd content block
  */
 
 //ERRORS ARE SUPRESSED - Change if development required or issues arrise
@@ -24,7 +24,7 @@
 
 require_once('../../config.php');
 
-$json_string = required_param('module_menu_json', PARAM_RAW);//json data used in the ajax calls
+$json_string = required_param('dd_content_json', PARAM_RAW);//json data used in the ajax calls
 $operation = required_param('operation', PARAM_TEXT);//the ajax operation to be completed
 $json = json_decode($json_string);//convert json data to an object
 
@@ -43,7 +43,7 @@ try {
 //determine what to do during this ajax call
 switch($operation) {
     case "update"://update/save current layout of the course menu
-      module_menu_update($json);
+      dd_content_update($json);
         break;
     
     
@@ -53,20 +53,20 @@ switch($operation) {
 }
 
 /**
- * Updates the module menu instances based on the given json data
+ * Updates the dd content instances based on the given json data
  * 
  * @global moodle_database $DB
- * @param string $json The json that contains the state of the module menu instance
+ * @param string $json The json that contains the state of the dd content instance
  */
-function module_menu_update($json) {
+function dd_content_update($json) {
     global $DB;
 
     //get block instance from db
     $block_instance = $DB->get_record('block_instances', array('id'=>$json->blockid));
     
     //create the block object instance
-    $module_menu = block_instance('module_menu', $block_instance);
-    $config = $module_menu->config;
+    $dd_content = block_instance('dd_content', $block_instance);
+    $config = $dd_content->config;
     
     //if config doesn't exist - create it
     if(!isset($config)) {
@@ -77,7 +77,7 @@ function module_menu_update($json) {
     $config->orientation = $json->orientation;
     
     //update config!
-    $module_menu->instance_config_save($config);
+    $dd_content->instance_config_save($config);
     
 }
 

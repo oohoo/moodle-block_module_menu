@@ -1,12 +1,12 @@
 --------------------------------------------------------------------------------
------------------------------- Module Menu Block ------------------------------
+------------------------------ Drag & Drop Content------------------------------
 --------------------------------------------------------------------------------
 
 --------------------------------------------------------------------------------
 Description
 --------------------------------------------------------------------------------
 
-This repository contains the course menu block.
+This repository contains the Drag & Drop Content block.
 
 --------------------------------------------------------------------------------
 Prerequisites
@@ -18,7 +18,7 @@ Moodle Installed - Version 2.4.X+
 Installation
 --------------------------------------------------------------------------------
 
- 1. Create folder called module_menu in <MoodleWWWDirectory>/blocks/
+ 1. Create folder called dd_content in <MoodleWWWDirectory>/blocks/
  2. Login as Administrator
  3. Install the new block in the standard plugin process
 

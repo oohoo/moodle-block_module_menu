@@ -15,9 +15,9 @@
  * *************************************************************************
  * ************************************************************************ */
 
-$string['pluginname'] = 'Module Menu';
-$string['module_menu'] = 'Module Menu';
-$string['module:addinstance'] = 'Add a new instance of the Module Menu Block';
+$string['pluginname'] = 'Drag & Drop Content';
+$string['dd_content'] = 'Drag & Drop Content';
+$string['module:addinstance'] = 'Add a new instance of the Drag & Drop Content Block';
 $string['editing_block_display'] = 'Menu Orientation';      
 $string['landing_pad_text'] = "Add Module Here";
 $string['invalid_section_id'] = "Invalid Section ID Detected. This course format might not be supported.";

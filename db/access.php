@@ -17,7 +17,7 @@
 
 $capabilities = array(
  
-    'block/module_menu:addinstance' => array(
+    'block/dd_content:addinstance' => array(
         'riskbitmask' => RISK_SPAM | RISK_XSS,
  
         'captype' => 'write',

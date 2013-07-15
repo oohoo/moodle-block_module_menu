@@ -15,36 +15,36 @@
 
 //A global variable containing the sections. This is done for efficiency, and
 //should be used as read-only.
-var module_menu_sections = $('li[id^="section-"]');
+var dd_content_sections = $('li[id^="section-"]');
 
 /*
  * General Page Init
  */
 $(function() {
-    module_menu_init_help_dialogs();//init help dialogs
-    module_menu_init_menu();//init the menu instances
-    module_menu_init_sections();//setup instances to show/hide landing pad
-    module_menu_init_dragable();//setup dragable elements in menu instances
-    module_menu_hide_dropdowns();//hide the dropdowns
-    module_menu_init_dropable(".module_menu_landing_pad");//init the landing pages
+    dd_content_init_help_dialogs();//init help dialogs
+    dd_content_init_menu();//init the menu instances
+    dd_content_init_sections();//setup instances to show/hide landing pad
+    dd_content_init_dragable();//setup dragable elements in menu instances
+    dd_content_hide_dropdowns();//hide the dropdowns
+    dd_content_init_dropable(".dd_content_landing_pad");//init the landing pages
 });
 
 /**
  * A function that hides the add activites/resources dropdowns
  */
-function module_menu_hide_dropdowns() {
+function dd_content_hide_dropdowns() {
     $(".section_add_menus").hide();
 }
 
 /**
- * Saves the orientation state for the module menu instance
+ * Saves the orientation state for the dd content instance
  * 
  * @param {int} blockid ID of the block to be updates
  * @param {string} orientation vert, horiz, or none
  */
 function update_orientation(blockid, orientation) {
     var json = {
-        course: module_menu_php['course'],
+        course: dd_content_php['course'],
         orientation: orientation,
         blockid: blockid
     };
@@ -52,9 +52,9 @@ function update_orientation(blockid, orientation) {
     var json_string = JSON.stringify(json);
     
     $.ajax({
-      url: module_menu_php['ajax'],//url for ajax calls
+      url: dd_content_php['ajax'],//url for ajax calls
       data: {
-          module_menu_json:json_string,
+          dd_content_json:json_string,
           operation:"update"
       },//data to be sent
   
@@ -69,29 +69,29 @@ function update_orientation(blockid, orientation) {
  *      This is done so we can determine when a draggable module is within a section, which
  *      allows us to show the landing pad to the user
  */
-function module_menu_init_sections() {
+function dd_content_init_sections() {
     //get template landing pad
-    var landing_pad = $('.module_menu_landing_pad');
+    var landing_pad = $('.dd_content_landing_pad');
 
     //for each section
-    $(module_menu_sections).each(function(index, element) {
+    $(dd_content_sections).each(function(index, element) {
         //add a clone of the landing pad to the end of the section
         $(element).find('.content').append(landing_pad.clone());
         
         //Turn the section itself into a droppable area
         $(element).droppable({
-            accept: ".module_menu_mod_wrap",//this class is allowed to be dropped onto this dropable
+            accept: ".dd_content_mod_wrap",//this class is allowed to be dropped onto this dropable
             tolerance: "pointer",
             //whenever a draggable module enters the section area - show the landing pad
             over: function(event, ui) {
-                $(this).find(".module_menu_landing_pad").show(200);
+                $(this).find(".dd_content_landing_pad").show(200);
             },
             //whenever a draggable module exits the section area - hide the landing pad
             out: function(event, ui) {
-                $(this).find(".module_menu_landing_pad").hide(200);
+                $(this).find(".dd_content_landing_pad").hide(200);
             },
            drop: function(event, ui) {
-            module_menu_dropped_event(this, event, ui);
+            dd_content_dropped_event(this, event, ui);
         }
         });
     });
@@ -101,32 +101,32 @@ function module_menu_init_sections() {
 /**
  * Faciliates the initalization of the various menu instances for the block
  */
-function module_menu_init_menu() {
-    module_menu_init_hover_scroll_horiz();//initalize horizontal menus
-    module_menu_init_hover_scroll_vert();//initalize vertical menu
+function dd_content_init_menu() {
+    dd_content_init_hover_scroll_horiz();//initalize horizontal menus
+    dd_content_init_hover_scroll_vert();//initalize vertical menu
     
     //determine which menu to load
-    module_menu_change_menu(module_menu_php['orientation']);
+    dd_content_change_menu(dd_content_php['orientation']);
     
     //initalize the orientation settings within the block
     //(change between menu instances)
-    module_menu_init_block_settings();
+    dd_content_init_block_settings();
 }
 
 /**
  * Converts the elements, determined by the given selector, into landing pads (droppables)
- * for the module menu options to be dropped into.
+ * for the dd content options to be dropped into.
  * 
  *  This includes the code to transfer to a module's creation page, when a module draggable is dropped into one
  *  of these landing pads.
  * 
- * @param {string} selector The selector that determines which module_menu elements become draggable menu options
+ * @param {string} selector The selector that determines which dd_content elements become draggable menu options
  */
-function module_menu_init_dropable(selector) {
+function dd_content_init_dropable(selector) {
     
     //get all elements that match selector and make them droppable
     $(selector).droppable({
-        accept: ".module_menu_mod_wrap",//this class is allowed to be dropped onto this dropable
+        accept: ".dd_content_mod_wrap",//this class is allowed to be dropped onto this dropable
         tolerance: "pointer",//use the pointer to determine if the item is inside it
         
         //when entering the landing pad -> change border to solid
@@ -143,7 +143,7 @@ function module_menu_init_dropable(selector) {
         //  -determine that modules specific name, the course, and the section and
         //   create a link to that module's creation page with the appropriate params
         drop: function(event, ui) {
-            module_menu_dropped_event(this, event, ui);
+            dd_content_dropped_event(this, event, ui);
         }
     });
 
@@ -151,22 +151,22 @@ function module_menu_init_dropable(selector) {
 
 /**
  * Given an event and ui objects from a jquery dropped event that occurs with 
- * an module menu option - this function redirects page
+ * an dd content option - this function redirects page
  * to the instance creation for that module 
  * 
  * @param {object} droppable
  * @param {object} event
  * @param {object} ui
  */
-function module_menu_dropped_event(droppable, event, ui) {
+function dd_content_dropped_event(droppable, event, ui) {
     var draggable = ui.draggable;//get the module draggable
 
     
     $(draggable).draggable( "option", "revert", false );
     ui.helper.data('dropped', true);
 
-    $(droppable).find(".module_menu_landing_pad_add").hide();
-    $(droppable).find(".module_menu_landing_pad_loading").show();
+    $(droppable).find(".dd_content_landing_pad_add").hide();
+    $(droppable).find(".dd_content_landing_pad_loading").show();
 
     //find the immediate li parent - contains the section id
     var li_section_wrapper = $(droppable).closest("[id^='section-']");
@@ -181,16 +181,16 @@ function module_menu_dropped_event(droppable, event, ui) {
     //no there are no matches, something in moodle has changed, or this
     //course format isn't going to work!
     if (matches.length < 2) {
-        console.log(module_menu_php['invalid_section_id']);
+        console.log(dd_content_php['invalid_section_id']);
         return;
     }
 
     //create the URL to module's creation page
-    var add_module_url = module_menu_php['wwwroot'];//server address
+    var add_module_url = dd_content_php['wwwroot'];//server address
     add_module_url += "/course/modedit.php";
     add_module_url += "?add=" + $(draggable).attr("modname");//module name is used as identifer to module type
     add_module_url += "&type=";//no idea
-    add_module_url += "&course=" + module_menu_php['course'];//course id
+    add_module_url += "&course=" + dd_content_php['course'];//course id
     add_module_url += "&section=" + matches[1];//which section that draggable was dropped into
     add_module_url += "&return=0";//no idea
     add_module_url += "&sr=";//no idea
@@ -200,11 +200,11 @@ function module_menu_dropped_event(droppable, event, ui) {
 }
 
 /**
- * Initalizes the module menu elements to become draggable
+ * Initalizes the dd content elements to become draggable
  */
-function module_menu_init_dragable() {
-    //get all module menu elements and makes the draggable
-    $( ".module_menu_mod_wrap" ).draggable({ 
+function dd_content_init_dragable() {
+    //get all dd content elements and makes the draggable
+    $( ".dd_content_mod_wrap" ).draggable({ 
         revert: true,//when dropped, animate back to origin
         helper: "clone",//clone html when dragging
         refreshPositions: true,//since the sections' size change(adding landing pads) - always update positions
@@ -217,10 +217,10 @@ function module_menu_init_dragable() {
             console.log(ui.helper.data('dropped'));
             
             if(!ui.helper.data('dropped')) {
-                $("#page .module_menu_landing_pad").hide(200); 
-                $("#page .module_menu_landing_pad").css('border-style', 'dashed');
-                $(module_menu_sections).find(".module_menu_landing_pad_add").show();
-                $(module_menu_sections).find(".module_menu_landing_pad_loading").hide();
+                $("#page .dd_content_landing_pad").hide(200); 
+                $("#page .dd_content_landing_pad").css('border-style', 'dashed');
+                $(dd_content_sections).find(".dd_content_landing_pad_add").show();
+                $(dd_content_sections).find(".dd_content_landing_pad_loading").hide();
             }
         }
     });
@@ -233,7 +233,7 @@ function module_menu_init_dragable() {
  * @param {object} element An html dom object within the block instance
  * @returns {string} The instance id (its numeric but returned as a string) -> "12"
  */
-function module_menu_get_block_id_from_element(element) {
+function dd_content_get_block_id_from_element(element) {
     
     var div_container = $(element).parents('div[id^=inst]');
     var text_id = div_container.attr("id");
@@ -244,7 +244,7 @@ function module_menu_get_block_id_from_element(element) {
     //no there are no matches, something in moodle has changed, or this
     //course format isn't going to work!
     if (matches.length < 2) {
-        console.log(module_menu_php['invalid_block_id']);
+        console.log(dd_content_php['invalid_block_id']);
         return;
     }
     
@@ -255,37 +255,37 @@ function module_menu_get_block_id_from_element(element) {
 /**
  * Initalizes the orientation menu that is located within the actual block itself
  */
-function module_menu_init_block_settings() {
+function dd_content_init_block_settings() {
     
     //when horz button pressed, change to horizontal menu
-    $("#module_menu_horz_btn").click(function() {
-        module_menu_change_menu('horiz');
+    $("#dd_content_horz_btn").click(function() {
+        dd_content_change_menu('horiz');
         
-        var blockid = module_menu_get_block_id_from_element(this);//get id of the block
+        var blockid = dd_content_get_block_id_from_element(this);//get id of the block
         update_orientation(blockid, 'horiz');//ajax update
     });
     
     //when vert button pressed, change to vert menu
-    $("#module_menu_vert_btn").click(function() {
-        module_menu_change_menu('vert');
+    $("#dd_content_vert_btn").click(function() {
+        dd_content_change_menu('vert');
         
-        var blockid = module_menu_get_block_id_from_element(this);//get id of the block
+        var blockid = dd_content_get_block_id_from_element(this);//get id of the block
         update_orientation(blockid, 'vert');//ajax update
     });
     
     //when none button pressed, show no menu
-    $("#module_menu_none_btn").click(function() {
-        module_menu_change_menu('none');
+    $("#dd_content_none_btn").click(function() {
+        dd_content_change_menu('none');
         
-        var blockid = module_menu_get_block_id_from_element(this);//get id of the block
+        var blockid = dd_content_get_block_id_from_element(this);//get id of the block
         update_orientation(blockid, 'none');//ajax update
     });
     
         //when bottom button pressed, show no menu
-    $("#module_menu_bot_btn").click(function() {
-        module_menu_change_menu('bot');
+    $("#dd_content_bot_btn").click(function() {
+        dd_content_change_menu('bot');
         
-        var blockid = module_menu_get_block_id_from_element(this);//get id of the block
+        var blockid = dd_content_get_block_id_from_element(this);//get id of the block
         update_orientation(blockid, 'bot');//ajax update
     });
 }
@@ -295,36 +295,36 @@ function module_menu_init_block_settings() {
  * 
  * @param {string} type vert for vertical menu, horiz for horizontal menu, else no menu
  */
-function module_menu_change_menu(type) {
+function dd_content_change_menu(type) {
     //grab menu instances for convience
-    var hori_menu = $("#module_menu_horiz_menu_wrapper");
-    var vert_menu = $("#module_menu_vert_menu_wrapper");
-    var bot_menu = $("#module_menu_bot_menu_wrapper");
+    var hori_menu = $("#dd_content_horiz_menu_wrapper");
+    var vert_menu = $("#dd_content_vert_menu_wrapper");
+    var bot_menu = $("#dd_content_bot_menu_wrapper");
     
-    //attach both instances back to our hidden div containing the module menu building blocks
-    $("#module_menu_wrapper").append(hori_menu);
-    $("#module_menu_wrapper").append(vert_menu);
-    $("#module_menu_wrapper").append(bot_menu);
+    //attach both instances back to our hidden div containing the dd content building blocks
+    $("#dd_content_wrapper").append(hori_menu);
+    $("#dd_content_wrapper").append(vert_menu);
+    $("#dd_content_wrapper").append(bot_menu);
     
     //get the main moodle page
     var page = $('#page');
     
     //make none of the orientation menu's buttons active
-    $(".module_menu_btn").removeClass('active');
+    $(".dd_content_btn").removeClass('active');
     
     
     //set which new active menu instance
     if(type === 'vert') {//vertical menu
         $(page).append(vert_menu);
-        $("#module_menu_vert_btn").addClass('active');//make vert button active
+        $("#dd_content_vert_btn").addClass('active');//make vert button active
     } else if(type === 'horiz') {//horizontal menu
         $(page).append(hori_menu);
-        $("#module_menu_horz_btn").addClass('active');//make horiz button active
+        $("#dd_content_horz_btn").addClass('active');//make horiz button active
     } else if(type === 'bot') {//horizontal menu
         $(page).append(bot_menu);
-        $("#module_menu_bot_btn").addClass('active');//make horiz button active
+        $("#dd_content_bot_btn").addClass('active');//make horiz button active
     } else {//no menu
-        $("#module_menu_none_btn").addClass('active');//make no menu active
+        $("#dd_content_none_btn").addClass('active');//make no menu active
     }
     
 }
@@ -332,15 +332,15 @@ function module_menu_change_menu(type) {
 /**
  * Initalizes the hovering based scroll functionality for the horiz menu
  */
-function module_menu_init_hover_scroll_horiz() {
+function dd_content_init_hover_scroll_horiz() {
     //hovering on the left side of horiz menu
-    $("#module_menu_horiz_menu_wrapper .module_menu_left, #module_menu_bot_menu_wrapper .module_menu_left").hover(
+    $("#dd_content_horiz_menu_wrapper .dd_content_left, #dd_content_bot_menu_wrapper .dd_content_left").hover(
      
       //enter the scroll left element
       function(event) {
         
         //get content
-        var container = $(this).siblings(".module_menu_container");
+        var container = $(this).siblings(".dd_content_container");
 
         //get the total amount scrolled away from the left
         var scroll_left = $(container).scrollLeft();
@@ -355,18 +355,18 @@ function module_menu_init_hover_scroll_horiz() {
        //exit the scroll left element
     }, function(){
          //get container that scrolling is occuring on
-         var container = $(this).siblings(".module_menu_container");
+         var container = $(this).siblings(".dd_content_container");
          //stop the scrolling
           $(container).stop();
     });
     
    //hovering on the right side of horiz menu
-    $("#module_menu_horiz_menu_wrapper .module_menu_right, #module_menu_bot_menu_wrapper .module_menu_right").hover(
+    $("#dd_content_horiz_menu_wrapper .dd_content_right, #dd_content_bot_menu_wrapper .dd_content_right").hover(
      
      //enter right element
      function(event) {
         //get container
-        var container = $(this).siblings(".module_menu_container");
+        var container = $(this).siblings(".dd_content_container");
         
         //get full width of container including hidden
         var full_width = $(container).get(0).scrollWidth;
@@ -384,7 +384,7 @@ function module_menu_init_hover_scroll_horiz() {
         //leave scroll right animation
     }, function(){
         //get container
-        var container = $(this).siblings(".module_menu_container");
+        var container = $(this).siblings(".dd_content_container");
         //stop animation
         $(container).stop();
     });
@@ -393,15 +393,15 @@ function module_menu_init_hover_scroll_horiz() {
 /**
  * Initalizes the hovering based scroll functionality for the vert menu
  */
-function module_menu_init_hover_scroll_vert() {
+function dd_content_init_hover_scroll_vert() {
     //scroll up on hover init
-    $("#module_menu_vert_menu_wrapper .module_menu_left").hover(
+    $("#dd_content_vert_menu_wrapper .dd_content_left").hover(
      
       //enter scroll up
       function(event) {
       
         //get container
-        var container = $(this).siblings(".module_menu_container");
+        var container = $(this).siblings(".dd_content_container");
         
         //get the total scrolled from top
         var scroll_up = $(container).scrollTop();
@@ -416,18 +416,18 @@ function module_menu_init_hover_scroll_vert() {
       //leave scroll up element
     }, function(){
         //get container
-         var container = $(this).siblings(".module_menu_container");
+         var container = $(this).siblings(".dd_content_container");
         //stop scroll animation  
         $(container).stop();
     });
     
         //scroll down on hover init
-    $("#module_menu_vert_menu_wrapper .module_menu_right").hover(
+    $("#dd_content_vert_menu_wrapper .dd_content_right").hover(
        
     //enter scroll down element    
     function(event) {
         //get container
-        var container = $(this).siblings(".module_menu_container");
+        var container = $(this).siblings(".dd_content_container");
         
         //get full height of container including hidden
         var full_height = $(container).get(0).scrollHeight;
@@ -445,7 +445,7 @@ function module_menu_init_hover_scroll_vert() {
        //exit scroll up
     }, function(){
         //get container
-        var container = $(this).siblings(".module_menu_container");
+        var container = $(this).siblings(".dd_content_container");
         
         //stop scroll animation
         $(container).stop();
@@ -456,15 +456,15 @@ function module_menu_init_hover_scroll_vert() {
  * Initalizes the help dialogs for each module, including the help buttons
  * on the module options 
  */
-function module_menu_init_help_dialogs() {
+function dd_content_init_help_dialogs() {
 
         //for all of the module options
-        $( ".module_menu_mod_wrap" ).each(function(index, element) {
+        $( ".dd_content_mod_wrap" ).each(function(index, element) {
        
        //find the help button for this option
-        var help_button = $(this).find('.module_menu_help');
+        var help_button = $(this).find('.dd_content_help');
         //find the help content for this option
-        var help_content = $(this).find('.module_menu_help_dialog');
+        var help_content = $(this).find('.dd_content_help_dialog');
         
         //turn the help content into a dialog
         $(help_content).dialog({
