@@ -213,9 +213,6 @@ function dd_content_init_dragable() {
         //This is done since some of the events arn't called on drop - leaving a section for example
         stop: function(event, ui) {
             
-            console.log("SSSS");
-            console.log(ui.helper.data('dropped'));
-            
             if(!ui.helper.data('dropped')) {
                 $("#page .dd_content_landing_pad").hide(200); 
                 $("#page .dd_content_landing_pad").css('border-style', 'dashed');
@@ -288,6 +285,107 @@ function dd_content_init_block_settings() {
         var blockid = dd_content_get_block_id_from_element(this);//get id of the block
         update_orientation(blockid, 'bot');//ajax update
     });
+    
+    //when search menu is entered
+    //remove "search" internal label is empty
+    $(".dd_content_search").focusin(function() {
+        
+        if($(this).attr("empty") === '1') {//if set as empty
+            $(this).attr("empty", "0");//set as non-empty
+            $(this).val("");//remove search label
+            $(this).addClass("dd_content_active_search");//add class to make text black
+        }
+    });
+    
+    $(".dd_content_search").focusout(function() {//when leaving the textbox
+        var content = $.trim($(this).val());//clean text
+        if(!content || content==='') {//if empty
+            $(this).attr("empty", "1");//set as empty
+            $(this).val(content);
+            dd_content_search();
+            $(this).val(dd_content_php['search_empty']);//add search label
+            $(this).removeClass("dd_content_active_search");//remove active search class
+        } else {
+            $(this).attr("empty", "0");//search isn't empty
+            $(this).addClass("dd_content_active_search");//make sure it has active class
+            dd_content_search();
+        }
+    });
+    
+    //detect enter button for search
+    $(".dd_content_search").keypress(function(event){
+ 
+        //get which key was pressed
+	var keycode = (event.keyCode ? event.keyCode : event.which);
+	//if it was the enter key - do search
+        if(keycode == '13') {
+                dd_content_search();
+	}
+ 
+});
+    
+}
+
+/**
+ * Uses an ajax call to filter the options based on the given search criteria
+ * 
+ */
+function dd_content_search() {
+    var container = $(".dd_content_container");
+    
+    //removes some listeners
+    dd_content_remove_help_dialogs();
+    $( ".dd_content_mod_wrap" ).draggable('destroy');
+    
+    //create loading image element
+    var img = $("<img/>", {'class':'dd_content_search_icon', 'src': dd_content_php['wwwroot']+'/blocks/dd_content/pix/loading_large.gif'});
+    
+    //remove menu options
+    container.children().remove();
+   
+    //add loading image
+    container.append(img);
+    
+    //get search textfield
+    var dd_content_search = $('.dd_content_search');
+    //get block instance id
+    var blockid = dd_content_get_block_id_from_element(dd_content_search);//get id of the block
+    
+    //assume its a horizontal or bottom menu with a name
+    var include_name = 1;
+    var active_menu = $(".dd_content_btn.active");//get active oritentation button
+    
+    //if the vertical menu is the one active, then reset include name to be no
+    if(active_menu.length > 0 && active_menu.hasClass("dd_content_vert_btn"))
+        include_name = 0;
+    
+    //setup state for the ajax search
+    var json = {
+        course: dd_content_php['course'],//course #
+        search: dd_content_search.val(),//search text
+        blockid: blockid,//blockid
+        include_name: include_name//whether to include text or not
+    };
+
+    //convert json to string
+    var json_string = JSON.stringify(json);
+    
+    //ajax call
+    $.ajax({
+      url: dd_content_php['ajax'],//url for ajax calls
+      data: {
+          dd_content_json:json_string,
+          operation:"search"
+      }//data to be sent
+  
+      //when ajax has completed
+       }).done(function (data) {
+           container.children().remove();//remove loading icon
+           container.append(data);//add response
+           dd_content_init_help_dialogs();//re-initalize dialogs
+           dd_content_init_dragable();//covnert to draggable options
+       });
+    
 }
 
 /**
@@ -450,6 +548,16 @@ function dd_content_init_hover_scroll_vert() {
         //stop scroll animation
         $(container).stop();
     });
+}
+
+function dd_content_remove_help_dialogs() {
+//find the help button for this option
+    var help_button = $('.dd_content_help');
+    //find the help content for this option
+    var help_content = $('.dd_content_help_dialog');
+    
+    $(help_content).dialog("destroy");
+    $(help_button).unbind('click');
 }
 
 /**

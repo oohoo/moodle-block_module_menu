@@ -45,11 +45,28 @@ switch($operation) {
     case "update"://update/save current layout of the course menu
       dd_content_update($json);
         break;
-    
+    case "search":
+       dd_content_search($json);
+        break;  
     
     //operation provided was invalid... do nothing!
     default:
         break;
+}
+
+/**
+ * Searches and outputs the menu options the dd content instances based on the given json data
+ * 
+ * @global moodle_database $DB
+ * @param string $json The json that contains the state of the dd content instance
+ */
+function dd_content_search($json) {
+
+    //get block instance from db
+    $dd_content = get_block_instance($json->blockid);
+    $dd_content->generate_mod_options($json->include_name, $json->search);
+
+    
 }
 
 /**
@@ -59,13 +76,9 @@ switch($operation) {
  * @param string $json The json that contains the state of the dd content instance
  */
 function dd_content_update($json) {
-    global $DB;
 
     //get block instance from db
-    $block_instance = $DB->get_record('block_instances', array('id'=>$json->blockid));
-    
-    //create the block object instance
-    $dd_content = block_instance('dd_content', $block_instance);
+    $dd_content = get_block_instance($json->blockid);
     $config = $dd_content->config;
     
     //if config doesn't exist - create it
@@ -79,6 +92,24 @@ function dd_content_update($json) {
     //update config!
     $dd_content->instance_config_save($config);
     
+}
+
+/**
+ * Retrieves the instance of the block based on the given blockid
+ * 
+ * @global moodle_database $DB
+ * @param int $blockid
+ * @return block_base Instance of block
+ */
+function get_block_instance($blockid) {
+    global $DB;
+    
+    //get block instance from db
+    $block_instance = $DB->get_record('block_instances', array('id'=>$blockid));
+    
+    //create the block object instance
+    $dd_content = block_instance('dd_content', $block_instance);
+    return $dd_content;
 }
 
 /**

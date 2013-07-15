@@ -26,7 +26,6 @@ class block_dd_content extends block_base {
      * Initaliation function for the block
      */
     public function init() {
-        global $PAGE;
 
         //set title
         $this->title = get_string('dd_content', 'block_dd_content');
@@ -70,7 +69,17 @@ class block_dd_content extends block_base {
                 //no menus
                 $content .=  html_writer::empty_tag("img", array('src'=>"$CFG->wwwroot/blocks/dd_content/pix/none.png", 'id'=>'dd_content_none_btn', 'class'=>'dd_content_btn'));
              $content .=  html_writer::end_tag("div");
-            }
+            
+             
+             $content .=  html_writer::start_tag("div", array('id'=>'dd_content_position'));
+              
+                   $text = get_string('editing_block_search', 'block_dd_content');
+                   $content .= html_writer::empty_tag('input', array('class' => 'dd_content_search', 'type'=>'text', 'value'=>$text, 'empty'=> '1'));
+             
+             $content .=  html_writer::end_tag("div");
+             
+             
+        }
         
         //create object to return content
         $this->content = new stdClass;
@@ -94,7 +103,7 @@ class block_dd_content extends block_base {
             //horiz menu instance
             $this->generate_dd_content('dd_content_horiz_menu_wrapper', 'ui-icon-triangle-1-w', 'ui-icon-triangle-1-e');
             //vert menu instance
-            $this->generate_dd_content('dd_content_vert_menu_wrapper', 'ui-icon-triangle-1-n','ui-icon-triangle-1-s', false, "vert");
+            $this->generate_dd_content('dd_content_vert_menu_wrapper', 'ui-icon-triangle-1-n','ui-icon-triangle-1-s', true, "vert");
             //bot menu instance
             $this->generate_dd_content('dd_content_bot_menu_wrapper', 'ui-icon-triangle-1-w', 'ui-icon-triangle-1-e');
             //landing pad template
@@ -125,6 +134,7 @@ class block_dd_content extends block_base {
            echo "dd_content_php['invalid_section_id'] = '".get_string('invalid_section_id','block_dd_content')."';"; 
            echo "dd_content_php['ajax'] = '$CFG->wwwroot/blocks/dd_content/ajax_controller.php';";
            echo "dd_content_php['orientation'] = '".$this->get_menu_oritentation()."';";
+           echo "dd_content_php['search_empty'] = '".get_string('editing_block_search','block_dd_content')."';";
            
            echo "</script>";
     }
@@ -205,12 +215,8 @@ class block_dd_content extends block_base {
             //main menu container
             echo html_writer::start_tag("div", array('class' => 'dd_content_container'));
                 //get all mod information
-                $mods = $this->get_mods_information();
-
-                //for each element - create the object
-                foreach ($mods as $mod) {
-                    $this->create_mod_option($mod, $include_name);
-                }
+            
+            $this->generate_mod_options($include_name);
                 
             echo html_writer::end_tag("div");
 
@@ -224,6 +230,22 @@ class block_dd_content extends block_base {
             
         echo html_writer::end_tag("div");
     }
+    
+    /**
+     * Outputs the module options
+     * 
+     * 
+     * 
+     * @param bool $include_name if true the name is included
+     */
+    public function generate_mod_options($include_name, $search = null) {
+        $mods = $this->get_mods_information($search);
+
+        //for each element - create the object
+        foreach ($mods as $mod) {
+            $this->create_mod_option($mod, $include_name);
+        }
+    }
 
     /**
      * Returns a set of all the module information
@@ -231,10 +253,24 @@ class block_dd_content extends block_base {
      * @global object $COURSE
      * @return array of modules metadata info
      */
-    private function get_mods_information() {
+    private function get_mods_information($search) {
         global $COURSE;
-        $modnames = get_module_types_names();//get all the names avaliable for this course
-        $modules = get_module_metadata($COURSE, $modnames);//get all metadata for the given names
+        $modnames = get_module_types_names(); //get all the names avaliable for this course
+        
+        $filtered_names = array();
+
+        $pattern = '/' . preg_quote($search) . '/i';
+        if (!empty($search)) {
+            foreach ($modnames as $modname=>$name) {
+                
+                if (preg_match($pattern, $name))
+                    $filtered_names[$modname] = $name;
+            }
+        } else {
+            $filtered_names = $modnames;
+        }
+
+        $modules = get_module_metadata($COURSE, $filtered_names); //get all metadata for the given names
 
         return $modules;
     }
