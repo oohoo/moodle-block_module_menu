@@ -16,6 +16,7 @@
 //A global variable containing the sections. This is done for efficiency, and
 //should be used as read-only.
 var dd_content_sections = $('li[id^="section-"]');
+var search_request = new Array();
 
 /*
  * General Page Init
@@ -59,8 +60,6 @@ function dd_content_init_filters() {
         $(".dd_content_search").val("");
     }); 
         
-    
-    
 }
 
 /**
@@ -324,19 +323,23 @@ function dd_content_init_block_settings() {
         }
     });
     
-    $(".dd_content_search").focusout(function() {//when leaving the textbox
+        //when search menu is entered
+    //remove "search" internal label is empty
+    $(".dd_content_search").focusout(function() {
         var content = $.trim($(this).val());//clean text
         if(!content || content==='') {//if empty
             $(this).attr("empty", "1");//set as empty
             $(this).val(content);
-            dd_content_search(this);
             $(this).val(dd_content_php['search_empty']);//add search label
             $(this).removeClass("dd_content_active_search");//remove active search class
         } else {
             $(this).attr("empty", "0");//search isn't empty
             $(this).addClass("dd_content_active_search");//make sure it has active class
-            dd_content_search(this);
         }
+    });
+    
+    $(".dd_content_search").on('input', function() {//when leaving the textbox
+            dd_content_search(this);
     });
     
     //detect enter button for search
@@ -398,8 +401,18 @@ function dd_content_search(element_selector) {
     //convert json to string
     var json_string = JSON.stringify(json);
     
+    
+    //stop all in-progess search ajax requests
+    var length = search_request.length,
+    element = null;
+    for (var i = 0; i < length; i++) {
+        element = search_request[i];//get request
+        element.abort();//abort it
+    }
+    
+    
     //ajax call
-    $.ajax({
+    var request = $.ajax({
       url: dd_content_php['ajax'],//url for ajax calls
       data: {
           dd_content_json:json_string,
@@ -413,6 +426,10 @@ function dd_content_search(element_selector) {
            dd_content_init_help_dialogs();//re-initalize dialogs
            dd_content_init_dragable();//covnert to draggable options
        });
+    
+
+    
+    search_request.push(request);   
     
 }
 
