@@ -1,17 +1,16 @@
 <?php
-
 /**
  * *************************************************************************
- * *                                Chairman                              **
+ * *                     Drag & Drop Content                              **
  * *************************************************************************
- * @package mod                                                          **
- * @subpackage chairman                                                  **
- * @name Chairman                                                        **
- * @copyright oohoo.biz                                                  **
- * @link http://oohoo.biz                                                **
- * @author Dustin Durand                                                 **
- * @license                                                              **
- * http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later              **
+ * @package blocks                                                        **
+ * @subpackage dd_content                                                 **
+ * @name Drag & Drop Content                                              **
+ * @copyright oohoo.biz                                                   **
+ * @link http://oohoo.biz                                                 **
+ * @author Dustin Durand                                                  **
+ * @license                                                               **
+ * http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later               **
  * *************************************************************************
  * ************************************************************************ */
 
@@ -163,20 +162,8 @@ class block_dd_content extends block_base {
         global $COURSE, $CFG;
         
         echo "<script>";
-           //avoid possible overwriting
-           echo "if(typeof dd_content_php == 'undefined') var dd_content_php = new Array();"; //global js object
-        
-           //server/course info
-           echo "dd_content_php['course'] = $COURSE->id ;"; //course id
-           echo "dd_content_php['wwwroot'] = '$CFG->wwwroot';"; //server address
-           
-           //LANGS
-           echo "dd_content_php['invalid_section_id'] = '".get_string('invalid_section_id','block_dd_content')."';"; 
-           echo "dd_content_php['ajax'] = '$CFG->wwwroot/blocks/dd_content/ajax_controller.php';";
            echo "dd_content_php['orientation'] = '".$this->get_menu_oritentation()."';";
-           echo "dd_content_php['search_empty'] = '".get_string('editing_block_search','block_dd_content')."';";
-           
-           echo "</script>";
+        echo "</script>";
     }
     
     /**
@@ -632,21 +619,9 @@ class block_dd_content extends block_base {
     function load_jQuery() {
         global $PAGE, $DB, $COURSE;
 
+        dd_content_inline_js();
         $this->dd_content_inline_js(); //some inline JS for php info
-
-        if (moodle_major_version() >= '2.5') {//use moodle's built in if > moodle 2.5
-            $PAGE->requires->jquery();
-            $PAGE->requires->jquery_plugin('migrate');
-            $PAGE->requires->jquery_plugin('ui');
-            $PAGE->requires->jquery_plugin('ui-css');
-        } else {//need to include jquery if pre moodle 2.5
-            //More Ugly Stuff to make it slightly more 2.4 friendly with course menu format...   
-            if ($COURSE->format != 'course_menu') {
-                $PAGE->requires->js("/blocks/dd_content/jquery/core/jquery-ui.min.js");
-                $PAGE->requires->css("/blocks/dd_content/jquery/core/themes/base/jquery.ui.all.css");
-            }
-        }
-
+        load_jQuery();
         $PAGE->requires->js("/blocks/dd_content/dd_content.js");
     }
 

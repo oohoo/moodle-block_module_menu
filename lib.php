@@ -1,16 +1,16 @@
 <?php
 /**
  * *************************************************************************
- * *                                Chairman                              **
+ * *                     Drag & Drop Content                              **
  * *************************************************************************
- * @package mod                                                          **
- * @subpackage chairman                                                  **
- * @name Chairman                                                        **
- * @copyright oohoo.biz                                                  **
- * @link http://oohoo.biz                                                **
- * @author Dustin Durand                                                 **
- * @license                                                              **
- * http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later              **
+ * @package blocks                                                        **
+ * @subpackage dd_content                                                 **
+ * @name Drag & Drop Content                                              **
+ * @copyright oohoo.biz                                                   **
+ * @link http://oohoo.biz                                                 **
+ * @author Dustin Durand                                                  **
+ * @license                                                               **
+ * http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later               **
  * *************************************************************************
  * ************************************************************************ */
 
@@ -249,5 +249,87 @@ function dd_content_setup_settings_form($form, &$mform, $count) {
         $mform->addElement('hidden', 'config_is_form_submission', "1");
         $mform->setType('config_is_form_submission', PARAM_INT);
 }
+
+    /**
+     * Loads jQuery based on if its moodle 2.5 or pre-moodle 2.5
+     * @global moodle_page $PAGE
+     * 
+     */
+    function load_jQuery() {
+        global $PAGE, $DB, $COURSE;
+
+        dd_content_inline_js(); //some inline JS for php info
+
+        if (moodle_major_version() >= '2.5') {//use moodle's built in if > moodle 2.5
+            $PAGE->requires->jquery();
+            $PAGE->requires->jquery_plugin('migrate');
+            $PAGE->requires->jquery_plugin('ui');
+            $PAGE->requires->jquery_plugin('ui-css');
+        } else {//need to include jquery if pre moodle 2.5
+            //More Ugly Stuff to make it slightly more 2.4 friendly with course menu format...   
+            if ($COURSE->format != 'course_menu') {
+                $PAGE->requires->js("/blocks/dd_content/jquery/core/jquery-ui.min.js");
+                $PAGE->requires->css("/blocks/dd_content/jquery/core/themes/base/jquery.ui.all.css");
+            }
+        }
+
+        $PAGE->requires->js("/blocks/dd_content/dd_content.js");
+    }
+    
+        /**
+     * This method outputs a set of server-side information for use by the browser side
+     * scripts.
+     * 
+     * @global object $COURSE
+     * @global object $CFG
+     */
+    function dd_content_inline_js() {
+        global $COURSE, $CFG;
+        
+        echo "<script>";
+           //avoid possible overwriting
+           echo "if(typeof dd_content_php == 'undefined') var dd_content_php = new Array();"; //global js object
+        
+           //server/course info
+           echo "dd_content_php['course'] = $COURSE->id ;"; //course id
+           echo "dd_content_php['wwwroot'] = '$CFG->wwwroot';"; //server address
+           
+           //LANGS
+           echo "dd_content_php['invalid_section_id'] = '".get_string('invalid_section_id','block_dd_content')."';"; 
+           echo "dd_content_php['ajax'] = '$CFG->wwwroot/blocks/dd_content/ajax_controller.php';";
+           //echo "dd_content_php['orientation'] = '".$this->get_menu_oritentation()."';";
+           echo "dd_content_php['search_empty'] = '".get_string('editing_block_search','block_dd_content')."';";
+           
+           //select 2
+            echo "dd_content_php['select2_no_matches'] = '" . get_string('select2_no_matches', 'block_dd_content') . "';";
+            echo "dd_content_php['select2_plural_extension'] = '" . get_string('select2_plural_extension', 'block_dd_content') . "';";
+            echo "dd_content_php['select2_enter'] = '" . get_string('select2_enter', 'block_dd_content') . "';";
+            echo "dd_content_php['select2_additional_chars'] = '" . get_string('select2_additional_chars', 'block_dd_content') . "';";
+            echo "dd_content_php['select2_remove_chars'] = '" . get_string('select2_remove_chars', 'block_dd_content') . "';";
+            echo "dd_content_php['select2_chars'] = '" . get_string('select2_chars', 'block_dd_content') . "';";
+            echo "dd_content_php['select2_only_select'] = '" . get_string('select2_only_select', 'block_dd_content') . "';";
+            echo "dd_content_php['select2_item'] = '" . get_string('select2_item', 'block_dd_content') . "';";
+            echo "dd_content_php['select2_loading_more'] = '" . get_string('select2_loading_more', 'block_dd_content') . "';";
+            echo "dd_content_php['select2_searching'] = '" . get_string('select2_searching', 'block_dd_content') . "';";
+           
+            echo "dd_content_php['filter_content_placeholder'] = '" . get_string('filter_content_placeholder', 'block_dd_content') . "';";
+            
+            
+           echo "</script>";
+    }
+    
+    /**
+     * Loads the JS that is specific to the config forms
+     * 
+     * @global moodle_page $PAGE
+     */
+    function load_config_forms_js() {
+        global $PAGE;
+        load_jQuery();
+        $PAGE->requires->css('/blocks/dd_content/jquery/plugins/select2/select2.css');
+        $PAGE->requires->js('/blocks/dd_content/jquery/plugins/select2/select2.js');
+        $PAGE->requires->js('/blocks/dd_content/jquery/plugins/select2/select2_locale_moodle.js');
+        $PAGE->requires->js('/blocks/dd_content/config_forms.js');
+    }
 
 ?>

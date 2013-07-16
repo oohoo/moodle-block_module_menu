@@ -1,4 +1,3 @@
-<?php
 /**
  * *************************************************************************
  * *                     Drag & Drop Content                              **
@@ -14,13 +13,24 @@
  * *************************************************************************
  * ************************************************************************ */
 
-if ($hassiteconfig) { // needs this condition or there is error on login page
+/**
+ * This js file is specific to code loaded for the config forms
+ */
+
+//config forms init
+$(function() {
+   
+   //convert multi-selects into select2
+   $("[id^=id_config_filter_mods_],[id^=config_filter_mods_]").select2({
+          //displayed when no values are present
+    placeholder: dd_content_php['filter_content_placeholder'],
     
-    /**
-     * Add an external admin page to the blocks section for the dd_content block
-     */
-    $ADMIN->add('blocksettings', new admin_externalpage('block_dd_content', get_string('pluginname','block_dd_content'), "$CFG->wwwroot/blocks/dd_content/admin_settings.php"));
-}
+   });
+   
+   
+   //force the select 2's to take 80% of the width
+   $(".select2-container").css('width', '80%');
+    
+});
 
 
-?>

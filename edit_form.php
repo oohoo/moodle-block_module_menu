@@ -2,20 +2,21 @@
 
 /**
  * *************************************************************************
- * *                                Chairman                              **
+ * *                     Drag & Drop Content                              **
  * *************************************************************************
- * @package mod                                                          **
- * @subpackage chairman                                                  **
- * @name Chairman                                                        **
- * @copyright oohoo.biz                                                  **
- * @link http://oohoo.biz                                                **
- * @author Dustin Durand                                                 **
- * @license                                                              **
- * http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later              **
+ * @package blocks                                                        **
+ * @subpackage dd_content                                                 **
+ * @name Drag & Drop Content                                              **
+ * @copyright oohoo.biz                                                   **
+ * @link http://oohoo.biz                                                 **
+ * @author Dustin Durand                                                  **
+ * @license                                                               **
+ * http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later               **
  * *************************************************************************
  * ************************************************************************ */
 require_once("$CFG->libdir/formslib.php");
 require_once("$CFG->dirroot/blocks/dd_content/lib.php");
+
 
 /**
  * The form used for administrator settings for the dd_content block
@@ -23,6 +24,22 @@ require_once("$CFG->dirroot/blocks/dd_content/lib.php");
  */
 class block_dd_content_edit_form extends block_edit_form {
 
+    
+    /*
+     * General Constructor
+     */
+    public function __construct($actionurl, $block, $page) {
+        parent::__construct($actionurl, $block, $page);
+        
+        global $PAGE;
+        load_jQuery();
+        $PAGE->requires->css('/blocks/dd_content/jquery/plugins/select2/select2.css');
+        $PAGE->requires->js('/blocks/dd_content/jquery/plugins/select2/select2.js');
+        $PAGE->requires->js('/blocks/dd_content/jquery/plugins/select2/select2_locale_moodle.js');
+        $PAGE->requires->js('/blocks/dd_content/config_forms.js');
+        
+    }
+    
     /**
      * Form Definition
      */

@@ -1,21 +1,23 @@
 /**
  * *************************************************************************
- * *                                Chairman                              **
+ * *                     Drag & Drop Content                              **
  * *************************************************************************
- * @package mod                                                          **
- * @subpackage chairman                                                  **
- * @name Chairman                                                        **
- * @copyright oohoo.biz                                                  **
- * @link http://oohoo.biz                                                **
- * @author Dustin Durand                                                 **
- * @license                                                              **
- * http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later              **
+ * @package blocks                                                        **
+ * @subpackage dd_content                                                 **
+ * @name Drag & Drop Content                                              **
+ * @copyright oohoo.biz                                                   **
+ * @link http://oohoo.biz                                                 **
+ * @author Dustin Durand                                                  **
+ * @license                                                               **
+ * http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later               **
  * *************************************************************************
  * ************************************************************************ */
 
 //A global variable containing the sections. This is done for efficiency, and
 //should be used as read-only.
 var dd_content_sections = $('li[id^="section-"]');
+
+//a queue of requests. When a new one is sent, all previous ones are aborted.
 var search_request = new Array();
 
 /*
@@ -323,8 +325,8 @@ function dd_content_init_block_settings() {
         }
     });
     
-        //when search menu is entered
-    //remove "search" internal label is empty
+        //when search menu is exited
+    //add "search" internal label if empty
     $(".dd_content_search").focusout(function() {
         var content = $.trim($(this).val());//clean text
         if(!content || content==='') {//if empty
@@ -338,8 +340,9 @@ function dd_content_init_block_settings() {
         }
     });
     
-    $(".dd_content_search").on('input', function() {//when leaving the textbox
-            dd_content_search(this);
+    //when the content in search box changes
+    $(".dd_content_search").on('input', function() {
+            dd_content_search(this);//do update
     });
     
     //detect enter button for search
@@ -403,6 +406,7 @@ function dd_content_search(element_selector) {
     
     
     //stop all in-progess search ajax requests
+    //Therefore, only the last request gets displayed
     var length = search_request.length,
     element = null;
     for (var i = 0; i < length; i++) {
@@ -428,7 +432,7 @@ function dd_content_search(element_selector) {
        });
     
 
-    
+    //add current request to queue
     search_request.push(request);   
     
 }

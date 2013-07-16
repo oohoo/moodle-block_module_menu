@@ -1,20 +1,21 @@
 <?php
 /**
  * *************************************************************************
- * *                                Chairman                              **
+ * *                     Drag & Drop Content                              **
  * *************************************************************************
- * @package mod                                                          **
- * @subpackage chairman                                                  **
- * @name Chairman                                                        **
- * @copyright oohoo.biz                                                  **
- * @link http://oohoo.biz                                                **
- * @author Dustin Durand                                                 **
- * @license                                                              **
- * http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later              **
+ * @package blocks                                                        **
+ * @subpackage dd_content                                                 **
+ * @name Drag & Drop Content                                              **
+ * @copyright oohoo.biz                                                   **
+ * @link http://oohoo.biz                                                 **
+ * @author Dustin Durand                                                  **
+ * @license                                                               **
+ * http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later               **
  * *************************************************************************
  * ************************************************************************ */
 
 require_once("$CFG->libdir/formslib.php");
+require_once("$CFG->dirroot/blocks/dd_content/lib.php");
 
 /**
  * The form used for administrator settings for the dd_content block
@@ -33,8 +34,9 @@ class settings_admin_form extends moodleform {
     function __construct($config_data) {
         $this->config_data = $config_data;
         parent::__construct();
+        load_config_forms_js(); 
         }
-    
+        
     /**
      * Form Definition
      */
