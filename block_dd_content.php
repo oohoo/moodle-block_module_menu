@@ -17,6 +17,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once("$CFG->dirroot/blocks/dd_content/lib.php");
+
 /**
  * Provides the main server functionality for the the dd content block
  */
@@ -30,6 +32,27 @@ class block_dd_content extends block_base {
         //set title
         $this->title = get_string('dd_content', 'block_dd_content');
 
+    }
+    
+    /**
+     * Runs the moment that an instance is created
+     * 
+     * In our case we are taking the instance config, and converting the serialized
+     * data information back into an stdclass object
+     */
+    public function specialization() {
+        //run parent method
+        parent::specialization();
+        
+        //get instance config
+        $config = $this->config;
+        
+        //if instance config exists and the data property is present, deserialize
+        //the data property(contains filter info) back into an object
+        if($config && isset($config->data)) {
+            $config->data = dd_content_deserialize($config->data);
+        }
+        
     }
 
     /**
@@ -59,7 +82,7 @@ class block_dd_content extends block_base {
             $content .= html_writer::end_tag('h4');
 
             //orientation options
-             $content .=  html_writer::start_tag("div", array('id'=>'dd_content_position'));
+             $content .=  html_writer::start_tag("div", array('class'=>'dd_content_position'));
                 //horiz orientation
                 $content .=  html_writer::empty_tag("img", array('src'=>"$CFG->wwwroot/blocks/dd_content/pix/horiz.png", 'id'=>'dd_content_horz_btn', 'class'=>'dd_content_btn'));
                 //vert orientation
@@ -70,14 +93,29 @@ class block_dd_content extends block_base {
                 $content .=  html_writer::empty_tag("img", array('src'=>"$CFG->wwwroot/blocks/dd_content/pix/none.png", 'id'=>'dd_content_none_btn', 'class'=>'dd_content_btn'));
              $content .=  html_writer::end_tag("div");
             
-             
-             $content .=  html_writer::start_tag("div", array('id'=>'dd_content_position'));
-              
+             //search menu
+             $content .=  html_writer::start_tag("div", array('class'=>'dd_content_position'));
                    $text = get_string('editing_block_search', 'block_dd_content');
                    $content .= html_writer::empty_tag('input', array('class' => 'dd_content_search', 'type'=>'text', 'value'=>$text, 'empty'=> '1'));
-             
              $content .=  html_writer::end_tag("div");
              
+             //filter dropdowns
+             $content .=  html_writer::start_tag("div", array('class'=>'dd_content_position'));
+                   $content .= $this->generate_filter_dropdowns();
+             $content .=  html_writer::end_tag("div");
+             
+             //get the default filter string
+             $default = $this->get_default_filter_search();
+             //do not want to send null as the search default
+             $cleaned_default = ($default == null) ? "" :  $default;
+             
+             //filter reset
+             $content .=  html_writer::start_tag("div", array('class'=>'dd_content_position dd_content_filter_reset'));
+                   //reset will be a link
+                   $content .= html_writer::start_tag('a', array('class' => 'dd_content_filter_reset', 'value'=>$cleaned_default));
+                        $content .= get_string('reset');
+                   $content .= html_writer::end_tag('a');
+             $content .=  html_writer::end_tag("div");
              
         }
         
@@ -93,6 +131,8 @@ class block_dd_content extends block_base {
         return $this->content;
     }
 
+    
+    
     /**
      * This function faciliates the output of the dd content contents that are located
      * at the top of the page
@@ -108,8 +148,7 @@ class block_dd_content extends block_base {
             $this->generate_dd_content('dd_content_bot_menu_wrapper', 'ui-icon-triangle-1-w', 'ui-icon-triangle-1-e');
             //landing pad template
             $this->generate_landing_pad();
-
-            
+  
         echo html_writer::end_tag("div");
     }
 
@@ -123,10 +162,11 @@ class block_dd_content extends block_base {
     private function dd_content_inline_js() {
         global $COURSE, $CFG;
         
-        echo "<script>console.log(dd_content_php);";
-           
+        echo "<script>";
+           //avoid possible overwriting
            echo "if(typeof dd_content_php == 'undefined') var dd_content_php = new Array();"; //global js object
         
+           //server/course info
            echo "dd_content_php['course'] = $COURSE->id ;"; //course id
            echo "dd_content_php['wwwroot'] = '$CFG->wwwroot';"; //server address
            
@@ -145,11 +185,13 @@ class block_dd_content extends block_base {
      * If the value has never been set then its horiz by default
      */
     private function get_menu_oritentation() {
+        //get instance config
         $data = $this->config;
         
+        //if an orientation exists return it
         if(isset($this->config) && isset($data->orientation)) {
             return $data->orientation;
-        } else {
+        } else {//if never been set - default to horiz
             return "horiz";
         }
         
@@ -232,19 +274,188 @@ class block_dd_content extends block_base {
     }
     
     /**
+     * Generates and returns the html for the filter dropdowns
+     * 
+     * @return string the html needed for the filter dropdowns
+     */
+    private function generate_filter_dropdowns() {
+        $html = '';//no html
+        
+        //instance filter dropdown
+        $instance_config = $this->get_settings_config_data();//get instance config
+        if(isset($instance_config) && isset($instance_config->data)//if config exists, and data has been saved
+                && count($instance_config->data) > 0) {//there is actually a filter saved
+            
+            $text = get_string('instance_filters', 'block_dd_content');//get label text
+            $html .= $this->generate_filter_dropdown($text, $instance_config->data);//generate dropdown
+        }
+
+        //global filter dropdown
+        $global_config_data = dd_content_get_admin_config();//grab global block config DATA (not the config itself)
+        if(count($global_config_data) > 0) {//if a filter exists
+            
+            $text = get_string('global_filters', 'block_dd_content');//get global filter label
+            $html .= $this->generate_filter_dropdown($text, $global_config_data);//create dropdown
+        }
+        
+        
+        return $html;
+    }
+    
+    /**
+     * Generates the html for a filter dropdown given an array of filter records and a label
+     * 
+     * @param string $label The label to be put above the dropdown
+     * @param array $filters An array of objects(records) that contain the name, mods, and default
+     * @return string The html for the filter dropdown
+     */
+    private function generate_filter_dropdown($label, $filters) {
+        $html = '';
+        
+        //generate label
+        $html .= html_writer::start_tag("h4", array('class'=>'dd_content_block'));
+            $html .= $label;
+        $html .= html_writer::end_tag("h4");    
+        
+        //start select
+        $html .= html_writer::start_tag("select", array('class'=>'dd_content_filter_select'));
+        
+        //always create the all option
+        $html .= html_writer::start_tag("option", array('value'=>''));//an empty string always returns all options
+                $html .= get_string('all');
+        $html .= html_writer::end_tag("option");
+        
+        //itterate through each filter and add as an option
+        $filter_count = 0;//keep count of number of filters
+        foreach($filters as $filter) {
+            $value = $this->get_filter_search($filter);//the comma delim list of mod names it the value
+            $display = $filter->name;//the name of filter
+            
+            
+            $options = array('value'=>$value);//add value to option
+            if($filter->default == 1)//set selected if default
+               $options['selected']='SELECTED';
+            
+            //add filter as select option
+            $html .= html_writer::start_tag("option", $options);
+                $html .= $display;
+            $html .= html_writer::end_tag("option");
+            
+            //inc number of filters
+            $filter_count++;
+        }
+        
+        //end select
+        $html .= html_writer::end_tag("select");
+        
+        //if no filters are present (other than all) don't return any html
+        //aka - no dropdown
+        if($filter_count == 0) return '';
+        
+        //return resulting html
+        return $html;
+        
+    }
+    
+    /**
      * Outputs the module options
      * 
-     * 
+     * If search is null, then a default is used (if present).
+     * Note: Instance Default > Global Default > No Filter
      * 
      * @param bool $include_name if true the name is included
      */
     public function generate_mod_options($include_name, $search = null) {
+        
+        if($search === null)//if no search is present, use the default - if there is one
+           $search = $this->get_default_filter_search();
+        
+        //get the information for all mods that match search
         $mods = $this->get_mods_information($search);
 
-        //for each element - create the object
+        //for each element - create the module option
         foreach ($mods as $mod) {
             $this->create_mod_option($mod, $include_name);
         }
+    }
+    
+    /**
+     * Returns the default filter for the current dd_content
+     * 
+     * If an instance default is set - it takes first presedence.
+     * If no instance default is set, then the global default takes presendence.
+     * 
+     * If no default is set, this function returns null.
+     * 
+     * @return string on default found, null on no default
+     */
+    private function get_default_filter_search() {
+        
+        //get instance config
+        $instance_config = $this->get_settings_config_data();
+        
+        //if there is saved filters
+        if(isset($instance_config) && isset($instance_config->data))
+            $search = $this->get_default_search($instance_config->data);//get default
+        
+        //if a default for instance is found return it
+        if($search != null) return $search;
+        
+        //get global config data for dd_content blocks
+        $global_config_data = dd_content_get_admin_config();
+        
+        //tty to get a default from global
+        $search = $this->get_default_search($global_config_data);
+        
+        //if a default is found return it
+        if($search != null) return $search;
+
+        //no default is found - return null
+        return null;
+        
+    }
+    
+    /**
+     * Attempts to find the FIRST filter with the default set in a given 
+     * array of filters
+     * 
+     * @param array $filters array of filter records that contain name, mods, default properties
+     * @return default string on success, null on no default found
+     */
+    private function get_default_search($filters) {
+        if(!is_array($filters)) return null;//if not an array - return null
+        if(count($filters) === 0) return null;//no filters - return null
+        
+        //for each filter look for the first that has default set
+        foreach($filters as $filter) {
+            if($filter->default == 1) {
+                return $this->get_filter_search($filter);//return its filter string
+            }
+        }
+        
+        //no filters are set to default
+        return null;
+    }
+    
+    /**
+     * Takes a filter record (contains name, mods, default properties) and returns
+     * that filter's search string.
+     * 
+     * @param object $filter filter record
+     * @return string search string
+     */
+     private function get_filter_search($filter) {
+        $names = array();//assume no mod names
+        $modnames = get_module_types_names(); //get all the names avaliable
+        $mods = $filter->mods;//get all mods in this filter
+
+        //go through each mod in the filter and and keep its name
+        foreach ($mods as $mod) {
+            array_push($names, $modnames[$mod]);
+        }
+
+        //convert list of names into a comma deliminated string of names
+        return implode(",", $names);
     }
 
     /**
@@ -257,22 +468,63 @@ class block_dd_content extends block_base {
         global $COURSE;
         $modnames = get_module_types_names(); //get all the names avaliable for this course
         
+        //start with no names
         $filtered_names = array();
 
-        $pattern = '/' . preg_quote($search) . '/i';
+        //if the search is null, or empty then assume no filtering
         if (!empty($search)) {
+            
+            //generate the search regex pattern based on search string
+            $pattern = $this->create_search_pattern($search);
+            
+            //go through all the possible modules possible
             foreach ($modnames as $modname=>$name) {
                 
+                //for each one that matches our search - add it to our filtered names list
                 if (preg_match($pattern, $name))
                     $filtered_names[$modname] = $name;
             }
-        } else {
+        } else {//no filtering - use all mods
             $filtered_names = $modnames;
         }
 
+        //get module details for all desired modules
         $modules = get_module_metadata($COURSE, $filtered_names); //get all metadata for the given names
 
+        //return module info
         return $modules;
+    }
+    
+    /**
+     * Converts a filter's search string into a regex pattern that can be used
+     * to match module names.
+     * 
+     * The search string is broken up by commas(comma delimited) and converted to
+     * regex or's. 
+     * ex: A,B,C => /A|B|C/i (A or B or C) - case insensitive
+     * 
+     * @param string $search filter search string (comma delimited)
+     * @return string the regex pattern for the given search string
+     */
+    private function create_search_pattern($search) {
+        $pattern = '/';//start regex with inital identifier
+        
+        //break string into pieces based on comma delimited
+        $groupings = explode(",", $search);
+        
+        $is_first = true;//identify the first itteration
+        foreach($groupings as $grouping) {
+            //on the first itteration - don't add the or operator
+            if(!$is_first) $pattern .= "|";
+            
+            $is_first = false;//not the first itteration anymore
+            $pattern .= preg_quote(trim($grouping));//add substring piece to patter
+        }
+        
+        $pattern .= '/i';//end identifier and make case insensitive
+        
+        //return generated regex pattern
+        return $pattern;
     }
 
     /**
@@ -337,7 +589,7 @@ class block_dd_content extends block_base {
      * No Custom Config
      */
     function has_config() {
-        return false;
+        return true;
     }
 
     /**
@@ -380,25 +632,77 @@ class block_dd_content extends block_base {
     function load_jQuery() {
         global $PAGE, $DB, $COURSE;
 
-        $this->dd_content_inline_js();//some inline JS for php info
-        
+        $this->dd_content_inline_js(); //some inline JS for php info
+
         if (moodle_major_version() >= '2.5') {//use moodle's built in if > moodle 2.5
             $PAGE->requires->jquery();
             $PAGE->requires->jquery_plugin('migrate');
             $PAGE->requires->jquery_plugin('ui');
             $PAGE->requires->jquery_plugin('ui-css');
         } else {//need to include jquery if pre moodle 2.5
-            
-         //More Ugly Stuff to make it slightly more 2.4 friendly with course menu format...   
-         if($COURSE->format != 'course_menu'){        
-            $PAGE->requires->js("/blocks/dd_content/jquery/core/jquery-ui.min.js");
-            $PAGE->requires->css("/blocks/dd_content/jquery/core/themes/base/jquery.ui.all.css");
+            //More Ugly Stuff to make it slightly more 2.4 friendly with course menu format...   
+            if ($COURSE->format != 'course_menu') {
+                $PAGE->requires->js("/blocks/dd_content/jquery/core/jquery-ui.min.js");
+                $PAGE->requires->css("/blocks/dd_content/jquery/core/themes/base/jquery.ui.all.css");
             }
         }
-        
+
         $PAGE->requires->js("/blocks/dd_content/dd_content.js");
     }
 
+    /**
+     * Returns the instance configuration for a given block instance
+     * 
+     * @return \stdClass
+     */
+    function get_settings_config_data() {
+        $config = $this->config;//get instance config
+
+        //if config doesn't exist - create it
+        if (!isset($config)) {
+            $config = new stdClass();
+        }
+
+        //if data doesn't exist = make it an empty array
+        if (!isset($config->data))
+            $config->data = array();
+
+        //return config
+        return $config;
+    }
+
+    /**
+     * Saved the given data into the instance config
+     * 
+     * Can save current instances of the config, along with properly formatted
+     * mform post submissions (edit_form.php/settings_admin_form.php).
+     * 
+     * @param object $data
+     * @param type $nolongerused 
+     */
+    function instance_config_save($data, $nolongerused = false) {
+
+        //If the is_form_submission or config_is_form_submission property is set in the object,
+        //then this is a valid form submission that will be saved to the config
+        if (isset($data->is_form_submission) || isset($data->config_is_form_submission)) {
+            
+            //process form data submission into a data string
+            $data_string = dd_content_process_settings_form($data);
+
+            $config_data = new stdClass();//create a config object
+            $config_data->data = $data_string;//set the data to be our processed string
+            
+            //add any non-submission fields back into config based on existing config
+            //ex: orientation
+            dd_content_add_non_standard_form_data($this, $config_data);
+            parent::instance_config_save($config_data);
+        } else {//In the case its not set, then we are updating the configuration
+            //in specialization its unserialized - needs to be re-serialized before savint
+            $data->data = dd_content_serialize($data->data);
+            parent::instance_config_save($data);
+        }
+    }
+    
 }
 
 ?>

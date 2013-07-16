@@ -19,8 +19,8 @@
  * This script handles the various ajax functionality used by this dd content block
  */
 
-//ERRORS ARE SUPRESSED - Change if development required or issues arrise
-//error_reporting(0);
+//ERRORS ARE SUPRESSED - Change if developing or issues arise
+error_reporting(0);
 
 require_once('../../config.php');
 
@@ -45,7 +45,7 @@ switch($operation) {
     case "update"://update/save current layout of the course menu
       dd_content_update($json);
         break;
-    case "search":
+    case "search"://filter currently displayed options
        dd_content_search($json);
         break;  
     
@@ -64,9 +64,9 @@ function dd_content_search($json) {
 
     //get block instance from db
     $dd_content = get_block_instance($json->blockid);
-    $dd_content->generate_mod_options($json->include_name, $json->search);
-
     
+    //outputs the module options that match the provided search string
+    $dd_content->generate_mod_options($json->include_name, $json->search); 
 }
 
 /**
@@ -79,6 +79,8 @@ function dd_content_update($json) {
 
     //get block instance from db
     $dd_content = get_block_instance($json->blockid);
+    
+    //get instance config
     $config = $dd_content->config;
     
     //if config doesn't exist - create it

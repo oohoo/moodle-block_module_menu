@@ -14,6 +14,14 @@
     background-color: #FAFAFA;
 }
 
+.dd_content_filter_select {
+    width: 85%;
+}
+
+.dd_content_filter_reset {
+    margin-top: 7px;
+}
+
 .dd_content_search {
     margin-top: 5px;
     margin-bottom: 4px;
@@ -47,7 +55,7 @@
     border-color: #424242;
 }
 
-#dd_content_position {
+.dd_content_position {
     text-align: center;
 }
 

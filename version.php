@@ -14,8 +14,8 @@
  * *************************************************************************
  * ************************************************************************ */
 
-$plugin->version = 2013071500;  // YYYYMMDDHH (year, month, day, 24-hr time)
+$plugin->version = 2013071600;  // YYYYMMDDHH (year, month, day, 24-hr time)
 $plugin->requires = 2012120300; // YYYYMMDDHH (This is the release version for Moodle 2.0)
 $plugin->maturity = MATURITY_BETA;
-$plugin->release = '1.0 (Build: 2013071000)';
+$plugin->release = '1.0 (Build: 2013071600)';
 $plugin->component = 'block_dd_content'; // Full name of the plugin (used for diagnostics)

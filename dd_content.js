@@ -27,6 +27,7 @@ $(function() {
     dd_content_init_dragable();//setup dragable elements in menu instances
     dd_content_hide_dropdowns();//hide the dropdowns
     dd_content_init_dropable(".dd_content_landing_pad");//init the landing pages
+    dd_content_init_filters();//init the filters dropdown listeners
 });
 
 /**
@@ -34,6 +35,32 @@ $(function() {
  */
 function dd_content_hide_dropdowns() {
     $(".section_add_menus").hide();
+}
+
+/**
+ * Initalization for the various filter based functionality
+ */
+function dd_content_init_filters() {    
+    
+    //when a filter dropdown is changed
+    $(".dd_content_filter_select").change(function() {
+       //find new filter based on selected option
+       var selected_filter = $(this).children("option").filter(":selected");
+       
+       //run a search to filter module options
+       dd_content_search(selected_filter);
+    });
+    
+    //on click of reset link - revert to the default filtering
+    $("a.dd_content_filter_reset").click(function() {
+
+        //sending hidden to search ajax call since it contains the default value
+        dd_content_search(this);
+        $(".dd_content_search").val("");
+    }); 
+        
+    
+    
 }
 
 /**
@@ -302,13 +329,13 @@ function dd_content_init_block_settings() {
         if(!content || content==='') {//if empty
             $(this).attr("empty", "1");//set as empty
             $(this).val(content);
-            dd_content_search();
+            dd_content_search(this);
             $(this).val(dd_content_php['search_empty']);//add search label
             $(this).removeClass("dd_content_active_search");//remove active search class
         } else {
             $(this).attr("empty", "0");//search isn't empty
             $(this).addClass("dd_content_active_search");//make sure it has active class
-            dd_content_search();
+            dd_content_search(this);
         }
     });
     
@@ -319,7 +346,7 @@ function dd_content_init_block_settings() {
 	var keycode = (event.keyCode ? event.keyCode : event.which);
 	//if it was the enter key - do search
         if(keycode == '13') {
-                dd_content_search();
+                dd_content_search(this);
 	}
  
 });
@@ -329,8 +356,9 @@ function dd_content_init_block_settings() {
 /**
  * Uses an ajax call to filter the options based on the given search criteria
  * 
+ * @param {object/string} element_selector An html dom object within the block instance that has the search text as its value
  */
-function dd_content_search() {
+function dd_content_search(element_selector) {
     var container = $(".dd_content_container");
     
     //removes some listeners
@@ -347,7 +375,7 @@ function dd_content_search() {
     container.append(img);
     
     //get search textfield
-    var dd_content_search = $('.dd_content_search');
+    var dd_content_search = $(element_selector);
     //get block instance id
     var blockid = dd_content_get_block_id_from_element(dd_content_search);//get id of the block
     
@@ -362,7 +390,7 @@ function dd_content_search() {
     //setup state for the ajax search
     var json = {
         course: dd_content_php['course'],//course #
-        search: dd_content_search.val(),//search text
+        search: dd_content_search.attr("value"),//search text
         blockid: blockid,//blockid
         include_name: include_name//whether to include text or not
     };
