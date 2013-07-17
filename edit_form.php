@@ -30,14 +30,7 @@ class block_dd_content_edit_form extends block_edit_form {
      */
     public function __construct($actionurl, $block, $page) {
         parent::__construct($actionurl, $block, $page);
-        
-        global $PAGE;
-        load_jQuery();
-        $PAGE->requires->css('/blocks/dd_content/jquery/plugins/select2/select2.css');
-        $PAGE->requires->js('/blocks/dd_content/jquery/plugins/select2/select2.js');
-        $PAGE->requires->js('/blocks/dd_content/jquery/plugins/select2/select2_locale_moodle.js');
-        $PAGE->requires->js('/blocks/dd_content/config_forms.js');
-        
+        load_config_forms_js(); 
     }
     
     /**

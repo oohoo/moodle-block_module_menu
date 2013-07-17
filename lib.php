@@ -255,7 +255,7 @@ function dd_content_setup_settings_form($form, &$mform, $count) {
      * @global moodle_page $PAGE
      * 
      */
-    function load_jQuery() {
+    function dd_content_load_jQuery() {
         global $PAGE, $DB, $COURSE;
 
         dd_content_inline_js(); //some inline JS for php info
@@ -325,7 +325,7 @@ function dd_content_setup_settings_form($form, &$mform, $count) {
      */
     function load_config_forms_js() {
         global $PAGE;
-        load_jQuery();
+        dd_content_load_jQuery();
         $PAGE->requires->css('/blocks/dd_content/jquery/plugins/select2/select2.css');
         $PAGE->requires->js('/blocks/dd_content/jquery/plugins/select2/select2.js');
         $PAGE->requires->js('/blocks/dd_content/jquery/plugins/select2/select2_locale_moodle.js');

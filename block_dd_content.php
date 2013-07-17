@@ -621,7 +621,7 @@ class block_dd_content extends block_base {
 
         dd_content_inline_js();
         $this->dd_content_inline_js(); //some inline JS for php info
-        load_jQuery();
+        dd_content_load_jQuery();
         $PAGE->requires->js("/blocks/dd_content/dd_content.js");
     }
 
